@@ -11,7 +11,7 @@
   <body>
     
     <div id="overlay">
-      
+      <h1 id="title">Drone Nodes</h1>
       <button id="startBtn">Start as player</button>
       <button id="hostStartBtn">Start as host</button>
     </div>
@@ -20,10 +20,23 @@
     <script type="module" src="/main.js"></script>
 
     <div id="playerList"></div>
-    <div id="visualizer-container">
-      <canvas id="canvas"></canvas>
-    </div>
 
+    <div id="PlayerDispContainer"> 
+      <div id="name"></div>
+      <div id="visualizer-container">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="controls">
+        <button id = "start" >
+          Start
+        </button>
+        <button id="stop">
+          Stop
+        </button>
+    </div>
+    
+    
+    
     <!-- <div class="banner">
       <img src="icons8-tunnel-90.png" alt="">
     </div>
@@ -72,3 +85,4 @@
     </div>
   </body>
 </html>
+

@@ -9,6 +9,7 @@ import * as Tone from 'tone'
 import { Oscillator } from 'tone';
 
 
+let name;
 
 firebase.initializeApp({
   apiKey: "AIzaSyDYf0BlW0pNhi1e8RYjxMhAov6ngDGJakE",
@@ -60,7 +61,7 @@ firebase.auth().onAuthStateChanged((user) => {
       id: playerId,
       name: randomName,
       type: 'sine',
-      freq: 440,
+      freq: 523.25,
       vol: -12,
       isPlaying: false,
       hasClickedPlayerButton: false
@@ -69,7 +70,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
     playerRef.on("value", (snapshot) => {
       const player = snapshot.val();
-    
+      name = player.name;
       console.log('player updated:', player);
       if (player.isPlaying) {
         oscillator.type = player.type;
@@ -78,6 +79,7 @@ firebase.auth().onAuthStateChanged((user) => {
       } else {
         oscillator.stop();
       }
+      oscillator.volume.value = player.vol;
     })
 
     playerRef.onDisconnect().remove();
@@ -114,6 +116,27 @@ document.getElementById("startBtn").addEventListener("click", () => {
     hasClickedPlayerButton: true
   });
   
+  const playerDisp = document.getElementById("PlayerDispContainer");
+  playerDisp.style.display = "flex";
+
+  const playerDisplay = document.createElement('div');
+  playerDisplay.setAttribute('id', 'playerDisplay')
+  playerDisplay.textContent = name;
+  document.getElementById('name').appendChild(playerDisplay);
+
+  const volumeSlider = document.createElement("input");
+    volumeSlider.type = "range";
+    volumeSlider.min = "-70";
+    volumeSlider.max = "0";
+    volumeSlider.value = -12;
+    volumeSlider.addEventListener("change", () => {
+      oscillator.volume.value = volumeSlider.value;
+
+
+    });
+    playerDisp.appendChild(volumeSlider);
+
+
   setupAudioVisualizer();
 
 });
@@ -132,6 +155,7 @@ function renderPlayerList() {
     playerDiv.setAttribute('id', 'playerDiv')
     const playerNameDiv = document.createElement('div');
     playerNameDiv.textContent = player.name;
+    playerNameDiv.style.fontSize = "30px";
     playerNameDiv.classList.add('playerName');
     playerDiv.appendChild(playerNameDiv);
 
@@ -145,10 +169,6 @@ function renderPlayerList() {
     playerFreqDiv.classList.add('playerFreq');
     playerDiv.appendChild(playerFreqDiv);
 
-    const playerIsPlayingDiv = document.createElement('div');
-    playerIsPlayingDiv.textContent = `Is Playing: ${player.isPlaying}`;
-    playerIsPlayingDiv.classList.add('playerIsPlaying');
-    playerDiv.appendChild(playerIsPlayingDiv);
 
     const playerControlsDiv = document.createElement('div');
     playerControlsDiv.classList.add('playerControls');
@@ -169,22 +189,33 @@ function renderPlayerList() {
     });
     playerControlsDiv.appendChild(pauseButton);
 
-    const pitchDropdown = document.createElement('select');
-    
+    const pitchContainer = document.createElement('div');
     notes.forEach((note) => {
-      const option = document.createElement('option');
-      option.value = note.frequency;
-      option.textContent = note.name;
-      pitchDropdown.appendChild(option);
-    });
-    pitchDropdown.addEventListener('change', (event) => {
-      const playerRef = firebase.database().ref(`players/${playerId}`);
-      playerRef.child('freq').set(event.target.value);
+      const button = document.createElement('button');
+      button.className = 'key';
+      button.textContent = note.name;
+      button.addEventListener('click', () => {
+        const playerRef = firebase.database().ref(`players/${playerId}`);
+        playerRef.child('freq').set(note.frequency);
+      });
+      pitchContainer.appendChild(button);
     });
 
-    playerControlsDiv.appendChild(pitchDropdown);
+    playerDiv.appendChild(pitchContainer);
     
-  
+    const volumeSlider = document.createElement("input");
+    volumeSlider.type = "range";
+    volumeSlider.min = "-70";
+    volumeSlider.max = "0";
+    volumeSlider.value = -12;
+    volumeSlider.value = player.vol;
+    volumeSlider.addEventListener("change", () => {
+      const playerRef = firebase.database().ref(`players/${playerId}`);
+      playerRef.child('vol').set(volumeSlider.value);
+
+    });
+    playerDiv.appendChild(volumeSlider);
+
     playerDiv.appendChild(playerControlsDiv);
 
     playerListDiv.appendChild(playerDiv);
@@ -206,11 +237,11 @@ function setupAudioVisualizer() {
 
   function draw() {
     requestAnimationFrame(draw);
-
+    canvasCtx.strokeStyle = "#FFFFFF";
     const buffer = analyser.getValue();
     canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
     canvasCtx.beginPath();
-
+    
     const sliceWidth = canvas.width / buffer.length;
     let x = 0;
 
@@ -231,7 +262,15 @@ function setupAudioVisualizer() {
 }
 
 
+const start = document.getElementById('start');
+start.addEventListener ('click', () => {
+  oscillator.start();
+});
 
+const stop = document.getElementById('stop');
+stop.addEventListener ('click', () => {
+  oscillator.stop();
+});
 
 
 
