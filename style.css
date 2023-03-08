@@ -1,20 +1,28 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
- 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Rubik+Mono+One&display=swap');
 *
 {
   margin: 0;
   padding: 0;
-  font-family: consolas;
+  /* font-family: consolas; */
+  font-family: 'Roboto', sans-serif;
+  font-family: 'Rubik Mono One', sans-serif;
+
 }
 
+
+
+#background{
+overflow: hidden;  
+position: fixed;
+}
 
 #playerList{
   display: none;
   justify-content: center;
   flex-wrap: wrap;
 }
-
 
 #playerDiv{
   display: flex;
@@ -29,12 +37,36 @@
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
+#chord-buttons{
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#chord-buttons button{
+  margin: 0 5px;
+  height: 105px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  margin: 10px;
+  border-radius: 3px;
+  padding: 5px 10px;
+}
+
+@media only screen and (max-width:480px) { 
+  #chord-buttons button {
+    width: 30%;
+    height: 30%;
+    margin: 2px;
+    font-size: 1em;
+  }
+}
+
 .playerControls {
   display: flex;
   align-items: center;
 }
-
-
 
 .playerControls button {
   margin: 0 5px;
@@ -134,7 +166,7 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgba(255, 255, 255, 0);
   cursor: pointer; 
   z-index: 2;
   text-align: center;
@@ -171,9 +203,10 @@ select option {
 }
 
 #title{
+  -webkit-text-stroke: 2px black;
   font-size: 6em;
-  font-family: Arial, sans-serif;
-  background: -webkit-linear-gradient(45deg, rgb(95, 25, 104), rgb(255, 166, 0), #00f);
+  font-family: 'Roboto', sans-serif;
+  background: -webkit-linear-gradient(45deg, rgb(236, 182, 243), rgb(238, 207, 149), rgb(18, 18, 32));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: psychedelic 5s ease-in-out infinite;
@@ -188,6 +221,62 @@ select option {
     filter: hue-rotate(360deg);
   }
 }
+
+#overlay button {
+  -webkit-text-stroke: 1px black;
+  width: 20rem;
+  height: 7rem;
+  background-color: rgba(255, 255, 255, 0.26);
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 0.8rem 1.6rem;
+  border-radius: 1.2rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+#overlay button:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+
+#overlay button:hover:before {
+  transform: scaleX(2);
+}
+
+#overlay button:after {
+  content: "";
+  position: absolute;
+  top: -0.2rem;
+  left: -0.2rem;
+  width: calc(100% + 0.4rem);
+  height: calc(100% + 0.4rem);
+  background-color: rgba(255, 255, 255, 0.1);
+  filter: blur(0.4rem);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+#overlay button:hover:after {
+  opacity: 1;
+}
+
 
 input[type=range] {
   -webkit-appearance: none;

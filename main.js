@@ -6,7 +6,6 @@ import 'firebase/compat/database';
 import { getAuth, deleteUser } from "firebase/auth";
 
 import * as Tone from 'tone'
-import { Oscillator } from 'tone';
 
 
 let name;
@@ -19,20 +18,20 @@ firebase.initializeApp({
   messagingSenderId: "741839883014",
   appId: "1:741839883014:web:09aec33b0f7b002f822c87"
 })
-
+let octave = 1;
 const notes = [
-  { name: "C", frequency: 523.25 },
-  { name: "Cs", frequency: 554.37 },
-  { name: "D", frequency: 587.33 },
-  { name: "Ds", frequency: 622.25 },
-  { name: "E", frequency: 659.25 },
-  { name: "F", frequency: 698.46 },
-  { name: "Fs", frequency: 739.99 },
-  { name: "G", frequency: 783.99 },
-  { name: "Gs", frequency: 830.61 },
-  { name: "A", frequency: 880.00 },
-  { name: "As", frequency: 932.33 },
-  { name: "B", frequency: 987.77 }
+  { name: "C", frequency: 523.25 / 2 * octave },
+  { name: "C#", frequency: 554.37 / 2 * octave },
+  { name: "D", frequency: 587.33 / 2 * octave },
+  { name: "D#", frequency: 622.25 / 2 * octave },
+  { name: "E", frequency: 659.25 / 2 * octave },
+  { name: "F", frequency: 698.46 / 2 * octave },
+  { name: "F#", frequency: 739.99 / 2 * octave },
+  { name: "G", frequency: 783.99 / 2 * octave },
+  { name: "G#", frequency: 830.61 / 2 * octave },
+  { name: "A", frequency: 880.00 / 2 * octave },
+  { name: "A#", frequency: 932.33 / 2 * octave },
+  { name: "B", frequency: 987.77 / 2 * octave }
 ];
 
 const adjectives = ['fierce', 'gentle', 'elegant', 'funky', 'quirky'];
@@ -43,7 +42,7 @@ const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 const randomName = `${randomAdjective} ${randomAnimal}`;
 
 const db = firebase.database();
-const oscillator = new Tone.Oscillator().toDestination();
+const oscillator = new Tone.FatOscillator().toDestination();
 
 let playerId;
 let playerRef;
@@ -60,8 +59,8 @@ firebase.auth().onAuthStateChanged((user) => {
     playerRef.set({
       id: playerId,
       name: randomName,
-      type: 'sine',
-      freq: 523.25,
+      type: 'sawtooth',
+      freq: 261.625,
       vol: -12,
       isPlaying: false,
       hasClickedPlayerButton: false
@@ -102,14 +101,21 @@ const visualizerDiv = document.getElementById('visualizer-container');
 
 document.getElementById("hostStartBtn").addEventListener("click", () => {
   document.getElementById("overlay").style.display = "none";
+  document.getElementById("backimg").style.display = "none";
+  document.getElementById("chord-buttons").style.display = "flex";
+  setupChords();
   visualizerDiv.style.display = "none";
-  playerListDiv.style.display = "flex";
+  playerListDiv.style.display = "block";
   Tone.start();
   renderPlayerList();
+
+  
 });
 
 document.getElementById("startBtn").addEventListener("click", () => {
   document.getElementById("overlay").style.display = "none";
+  document.getElementById("backimg").style.display = "none";
+
   Tone.start();
 
   playerRef.update({
@@ -140,6 +146,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
   setupAudioVisualizer();
 
 });
+
 
 function renderPlayerList() {
   playerListDiv.innerHTML = '';
@@ -271,6 +278,80 @@ const stop = document.getElementById('stop');
 stop.addEventListener ('click', () => {
   oscillator.stop();
 });
+
+
+const chords = [  
+  {    
+    name: "C Major",
+    notes: [261.63, 329.63, 392.00]
+  },
+  {
+    name: "G Major",
+    notes: [392.00, 493.88, 587.33]
+  },
+  {
+    name: "A Minor",
+    notes: [440.00, 523.25, 659.25]
+  },
+  {
+    name: "D Major",
+    notes: [293.66, 369.99, 440.00]
+  },
+  {
+    name: "E Major",
+    notes: [329.63, 415.30, 493.88]
+  },
+  {
+    name: "F Major",
+    notes: [349.23, 440.00, 523.25]
+  },
+  {
+    name: "Bb Major",
+    notes: [466.16, 587.33, 698.46]
+  },
+  {
+    name: "G Minor",
+    notes: [392.00, 466.16, 587.33]
+  }
+];
+
+
+function setupChords() {
+  // loop through all chord buttons and add event listener
+  document.querySelectorAll('#chord-buttons button').forEach(function (button) {
+    button.addEventListener("click", function () {
+      // get the chord name from the button's data attribute
+      const chordName = button.innerHTML;
+    //   // find the selected chord in the chords array
+      const selectedChord = chords.find(function (chord) {
+        return chord.name === chordName;
+      });
+      console.log(selectedChord)
+
+      let i=0;
+
+      if (selectedChord) {
+        // loop through all players and update their frequency to the notes in the chord
+        for (const playerId in players) {
+          const freq = selectedChord.notes[i];
+          console.log(freq);
+          const playerRef = firebase.database().ref(`players/${playerId}`);
+          playerRef.child('freq').set(freq);
+          if(i <= selectedChord.notes.length){
+            i++;
+          }else{
+            i=0;
+          }
+        }
+      }
+    });
+  });
+}
+
+
+  
+
+
 
 
 
