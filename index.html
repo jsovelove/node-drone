@@ -7,8 +7,8 @@
     <title>Vite App</title>
     
     
-    <script type="module" crossorigin src="/node-drone/assets/index-55307c37.js"></script>
-    <link rel="stylesheet" href="/node-drone/assets/index-ec989aa1.css">
+    <script type="module" crossorigin src="/node-drone/assets/index-08db5ef4.js"></script>
+    <link rel="stylesheet" href="/node-drone/assets/index-a82bfddb.css">
   </head>
   <body>
     
@@ -25,28 +25,60 @@
 
     <div id="app"></div>
     
-
+    
+    <div id="globalControl">
+      <button id="playAll">Play All</button>
+      <button id="stopAll">Stop All</button>
+    </div>
     <div id="chord-buttons">
       <button id="btn-c-major">C Major</button>
+      <button id="btn-c-minor">C Minor</button>
       <button id="btn-g-major">G Major</button>
+      <button id="btn-g-minor">G Minor</button>
       <button id="btn-a-minor">A Minor</button>
       <button id="btn-d-major">D Major</button>
+      <button id="btn-eb-major">Eb Major</button>
       <button id="btn-e-major">E Major</button>
       <button id="btn-f-major">F Major</button>
+      <button id="btn-f-minor">F Minor</button>
       <button id="btn-bb-major">Bb Major</button>
-      <button id="btn-g-minor">G Minor</button>
+      
     </div>
 
-    <div id="playerList"></div>
+    <div id="hostSamplePad">
+      <label class="switch">
+        <input type="checkbox" id="cmDrone">
+        <span class="slider">cm Drone</span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="eDrone1">
+        <span class="slider">cm Drone2</span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="cmSample">
+        <span class="slider">cm Sample</span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="">
+        <span class="slider"></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="">
+        <span class="slider"></span>
+      </label>
+      
+    </div>
+
+    <div id="playerList">
+      
+    </div>
 
     <div id="PlayerDispContainer"> 
       <div id="name"></div>
 
       <div id="visualizer-container">
-        <canvas id="canvas"></canvas>
-        
+        <canvas id="canvas"></canvas> 
       </div>
-
 
       <div class="controls">
         <button id = "start" >
@@ -56,54 +88,17 @@
           Stop
         </button>
     </div>
-    
-    
-    
-    <!-- <div class="banner">
-      <img src="icons8-tunnel-90.png" alt="">
+    <div id="samplePad">
+      <button id="elephant"></button>
+      <button id="sheep">S</button>
+      <button id="time">T</button>
+      <button id="plath">P</button>
+      <button ></button>
+      <button ></button>
+      <button ></button>
+      <button ></button>
+      <button ></button>
     </div>
-    <div class="controls">
-      <button id = "start" >
-        <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path d="M16 37.85v-28l22 14Zm3-14Zm0 8.55 13.45-8.55L19 15.3Z"/></svg>
-      </button>
-      <button id="stop">
-        <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path d="M28.25 38V10H36v28ZM12 38V10h7.75v28Z"/></svg>
-      </button>
-
-    </div>
-    <div id="playerCntrls">
-
-      <div class="vol_slider">
-      <h2>Volume</h2>
-      <input id="slider1" type="range" min="-80" max="0" value="32" />
-    </div>
-    
-    <div class="freq_slider">
-      <h2>Pitch</h2>
-      <input id="slider2" type="range" min="523" max="1760" value="523" />
-    </div>
-
-    <div class="wave_type">
-      <button id="sine">Sine</button>
-      <button id="square">Square</button>
-      <button id="saw">Saw</button>
-    </div>
-
-    <div class="piano">
-      <button id="C" class="key white C">C</button>
-      <button id="Cs" class="key black C#">C#</button>
-      <button id="D" class="key white D">D</button>
-      <button id="Ds" class="key black D#">D#</button>
-      <button id="E" class="key white E">E</button>
-      <button id="F" class="key white F">F</button>
-      <button id="Fs" class="key black F#">F#</button>
-      <button id="G" class="key white G">G</button>
-      <button id="Gs" class="key black G#">G#</button>
-      <button id="A" class="key white A">A</button>
-      <button id="As" class="key black A#">A#</button>
-      <button id="B" class="key white B">B</button>
-  </div> -->
-
     </div>
   </body>
 </html>
