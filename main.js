@@ -54,7 +54,8 @@ const playerUrls = [
   'Samples/Modular_one_shot_chirp.wav',
   'Samples/SC_UZ_perc_one_shot_analog_dolphin_zap_wet.wav',
   '/Samples/RU_PMGP_HATS_LEAF.wav',
-  'Samples/chord_vortex_cmin.mp3'
+  'Samples/chord_vortex_cmin.mp3',
+  'Samples/RU_FD_fx_alien_life_.wav'
 ];
 
 const randPlayers = [];
@@ -72,9 +73,13 @@ function playRandomPlayer() {
 const cmDrone = new Tone.Player("Samples/RU_GA_guitar_soundscape_drone_pluto_cm.wav").toDestination();
 const CmDrone1 = new Tone.Player("Samples/RU_GA_80_guitar_cherry_plum_triplets_C.wav").toDestination();
 const cmSample = new Tone.Player("Samples/C_chunky.wav").toDestination();
+const gtrTexture = new Tone.Player("Samples/guitar_txtr_cm.wav").toDestination();
+const cmAmbient = new Tone.Player("Samples/moog_mist_cm.wav").toDestination();
 cmDrone.loop = true;
 CmDrone1.loop = true;
 cmSample.loop = true;
+gtrTexture.loop = true;
+cmAmbient.loop = true;
 
 //realtime database setup
 const db = firebase.database();
@@ -106,6 +111,8 @@ firebase.auth().onAuthStateChanged((user) => {
         cmDroneisPlaying: false,
         eDrone1isPlaying: false,
         cmSampleisPlaying: false,
+        gtrTextureisPlaying: false,
+        cmAmbientisPlaying: false
       }
 
     });
@@ -154,6 +161,18 @@ firebase.auth().onAuthStateChanged((user) => {
       }
       else {
         cmSample.stop();
+      }
+      if (player.gtrTextureisPlaying) {
+        gtrTexture.start();
+      }
+      else {
+        gtrTexture.stop();
+      }
+      if (player.cmAmbientisPlaying) {
+        cmAmbient.start();
+      }
+      else {
+        cmAmbient.stop();
       }
 
     })
@@ -513,21 +532,53 @@ function globalControl(){
       }
     }
   });
+  document.getElementById("gtrTexture").addEventListener('change', function() {
+    if (this.checked) {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('gtrTextureisPlaying').set(true);
+      }
+    } else {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('gtrTextureisPlaying').set(false);
+      }
+    }
+  });
+  document.getElementById("cmAmbient").addEventListener('change', function() {
+    if (this.checked) {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmAmbientisPlaying').set(true);
+      }
+    } else {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmAmbientisPlaying').set(false);
+      }
+    }
+  });
 
 }
 
 
 
-
-
+//user sample pad samples
 const sheep = new Tone.Player("/Samples/SheepBaa_S08AN.310.wav").toDestination();
 const elephant = new Tone.Player("Samples/elephantCry.wav").toDestination();
 const spk1 = new Tone.Player("Samples/SPLC-4185_FX_Loop_Radio_Noise_Handheld_Voice_Distorted.wav").toDestination();
 const plath = new Tone.Player("Samples/plath.wav").toDestination();
+const gtr = new Tone.Player("Samples/RU_FD_one_shot_guitar_stones_Cmin.wav").toDestination();
+const gtr2 = new Tone.Player("Samples/cm_gtr_2.wav")
+const alien = new Tone.Player("Samples/RU_FD_fx_one_shot_sweep_dusty.wav").toDestination();
+const blaster = new Tone.Player("Samples/RU_FD_fx_space_gun.wav").toDestination();
+const cough = new Tone.Player("Samples/RU_FD_fx_vox_cough.wav").toDestination();
 
 const vol = new Tone.Volume(2).toDestination();
 plath.connect(vol);
 
+
+//User sample pad listeners
 document.getElementById("elephant").addEventListener("click", () => {
   elephant.start();
 });
@@ -540,7 +591,21 @@ document.getElementById("time").addEventListener("click", () => {
 document.getElementById("plath").addEventListener("click", () => {
   plath.start();
 });
-
+document.getElementById("gtr").addEventListener("click", () => {
+  gtr.start();
+});
+document.getElementById("alien").addEventListener("click", () => {
+  alien.start();
+});
+document.getElementById("blaster").addEventListener("click", () => {
+  blaster.start();
+});
+document.getElementById("cough").addEventListener("click", () => {
+  cough.start();
+});
+document.getElementById("gtr2").addEventListener("click", () => {
+  gtr2.start();
+});
 
 
 Tone.Transport.bpm.value = 60;
@@ -548,19 +613,15 @@ Tone.Transport.bpm.value = 60;
 let currentPlayerIndex = 0;
 
 Tone.Transport.scheduleRepeat((time) =>{
-  // get the current player
   const currentPlayerKey = Object.keys(players)[currentPlayerIndex];
   const currentPlayer = players[currentPlayerKey];
   
-  // set the transportSampleIsPlaying value for the current player to true
   firebase.database().ref('players/' + currentPlayerKey).update({ transportSampleIsPlaying: true });
   
-  // schedule a stop for the current player on the next beat
   Tone.Transport.scheduleOnce((innerTime) => {
     firebase.database().ref('players/' + currentPlayerKey).update({ transportSampleIsPlaying: false });
   }, "+8n");
   
-  // increment the currentPlayerIndex and wrap around if necessary
   currentPlayerIndex = (currentPlayerIndex + 1) % Object.keys(players).length;
   
 }, "4n");
