@@ -15,16 +15,17 @@
   display: none;
   flex-wrap: wrap;
   justify-content: center;
-  margin: 5px;
+  margin: 10px;
+  
 }
 #samplePad button{
+  font-size: medium;
+  outline: #ffffff solid 1px;
   margin: 1px;
   width: 200px;
   height: 200px;;
   background-color: #585858;
   color: #fff;
-  border: none;
-  border-radius: 3px;
   padding: 5px 10px;
 }
 #hostSamplePad{
@@ -100,6 +101,7 @@ position: fixed;
   
   #samplePad button{
     margin: 1px 5px;
+    font-size: 9px;
     width: 80px;
     height: 80px;;
     background-color: #585858;

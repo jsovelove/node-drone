@@ -8,8 +8,7 @@ import { getAuth, deleteUser } from "firebase/auth";
 import * as Tone from 'tone'
 
 
-let name;
-
+//firebase config
 firebase.initializeApp({
   apiKey: "AIzaSyDYf0BlW0pNhi1e8RYjxMhAov6ngDGJakE",
   authDomain: "node-drone-c94f1.firebaseapp.com",
@@ -18,6 +17,8 @@ firebase.initializeApp({
   messagingSenderId: "741839883014",
   appId: "1:741839883014:web:09aec33b0f7b002f822c87"
 })
+
+
 let octave = 1;
 const notes = [
   { name: "C", frequency: 523.25 / 2 * octave },
@@ -34,14 +35,40 @@ const notes = [
   { name: "B", frequency: 987.77 / 2 * octave }
 ];
 
+//random name generator
 const adjectives = ['fierce', 'gentle', 'elegant', 'funky', 'quirky'];
 const animals = ['elephant', 'giraffe', 'zebra', 'lion', 'tiger'];
-
 const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
 const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 const randomName = `${randomAdjective} ${randomAnimal}`;
 
-const zap = new Tone.Player("Samples/Modular_one_shot_chirp.wav").toDestination();
+//random sound generator
+const pitches = [1, 6, 12];
+const randomIndex = Math.floor(Math.random() * pitches.length);
+const randomValue = pitches[randomIndex];
+
+//samples to be played at random
+const playerUrls = [
+  'Samples/c_hit_soft.wav',
+  'Samples/RU_IA_low_piano_C.wav',
+  'Samples/Modular_one_shot_chirp.wav',
+  'Samples/SC_UZ_perc_one_shot_analog_dolphin_zap_wet.wav',
+  '/Samples/RU_PMGP_HATS_LEAF.wav',
+  'Samples/chord_vortex_cmin.mp3'
+];
+
+const randPlayers = [];
+playerUrls.forEach((url) => {
+  const player = new Tone.Player(url).toDestination();
+  randPlayers.push(player);
+});
+
+function playRandomPlayer() {
+  const RandPlayer = randPlayers[Math.floor(Math.random() * randPlayers.length)];
+  RandPlayer.start();
+}
+
+//Host sample bank
 const cmDrone = new Tone.Player("Samples/RU_GA_guitar_soundscape_drone_pluto_cm.wav").toDestination();
 const CmDrone1 = new Tone.Player("Samples/RU_GA_80_guitar_cherry_plum_triplets_C.wav").toDestination();
 const cmSample = new Tone.Player("Samples/C_chunky.wav").toDestination();
@@ -49,13 +76,15 @@ cmDrone.loop = true;
 CmDrone1.loop = true;
 cmSample.loop = true;
 
-
+//realtime database setup
 const db = firebase.database();
 const oscillator = new Tone.FatOscillator().toDestination();
 
+let name;
 let playerId;
 let playerRef;
 let playerSamplesRef;
+
 firebase.auth().onAuthStateChanged((user) => {
 
   console.log(user)
@@ -94,13 +123,12 @@ firebase.auth().onAuthStateChanged((user) => {
         oscillator.stop();
       }
       oscillator.volume.value = player.vol;
+      
 
       if (player.transportSampleIsPlaying) {
-        zap.start();
+        playRandomPlayer();
       }
-      else {
-        zap.stop();
-      }
+      
 
     })
 
@@ -143,7 +171,8 @@ firebase.auth().signInAnonymously().catch((error) => {
   console.log(errorCode, errorMessage);
 });
 
-
+//players array stores each player's data and is updated when a new player joins or leaves
+//used to update the player info on the host's screen
 let players = [];
 const playerListDiv = document.getElementById('playerList');
 const visualizerDiv = document.getElementById('visualizer-container');
@@ -214,7 +243,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
 });
 
-
+//creates a interface for each player
 function renderPlayerList() {
   playerListDiv.innerHTML = '';
 
@@ -514,7 +543,7 @@ document.getElementById("plath").addEventListener("click", () => {
 
 
 
-Tone.Transport.bpm.value = 80;
+Tone.Transport.bpm.value = 60;
 
 let currentPlayerIndex = 0;
 
