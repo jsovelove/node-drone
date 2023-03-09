@@ -41,12 +41,21 @@ const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)
 const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 const randomName = `${randomAdjective} ${randomAnimal}`;
 
+const zap = new Tone.Player("Samples/zapC.wav").toDestination();
+const cmDrone = new Tone.Player("Samples/RU_GA_guitar_soundscape_drone_pluto_cm.wav").toDestination();
+const CmDrone1 = new Tone.Player("Samples/RU_GA_80_guitar_cherry_plum_triplets_C.wav").toDestination();
+const cmSample = new Tone.Player("Samples/C_chunky.wav").toDestination();
+cmDrone.loop = true;
+CmDrone1.loop = true;
+cmSample.loop = true;
+
+
 const db = firebase.database();
 const oscillator = new Tone.FatOscillator().toDestination();
 
 let playerId;
 let playerRef;
-
+let playerSamplesRef;
 firebase.auth().onAuthStateChanged((user) => {
 
   console.log(user)
@@ -55,7 +64,7 @@ firebase.auth().onAuthStateChanged((user) => {
     playerId = user.uid;
 
     playerRef = firebase.database().ref(`players/${playerId}`);
-    
+    playerSamplesRef = firebase.database().ref(`players/${playerId}`).child('samples');
     playerRef.set({
       id: playerId,
       name: randomName,
@@ -63,7 +72,12 @@ firebase.auth().onAuthStateChanged((user) => {
       freq: 261.625,
       vol: -12,
       isPlaying: false,
-      hasClickedPlayerButton: false
+      hasClickedPlayerButton: false,
+      samples: {
+        cmDroneisPlaying: false,
+        eDrone1isPlaying: false,
+        cmSampleisPlaying: false,
+      }
 
     });
 
@@ -73,18 +87,53 @@ firebase.auth().onAuthStateChanged((user) => {
       console.log('player updated:', player);
       if (player.isPlaying) {
         oscillator.type = player.type;
-        oscillator.frequency.value = player.freq;
+        // oscillator.frequency.value = player.freq;
+        oscillator.frequency.rampTo(player.freq, 1);
         oscillator.start();
       } else {
         oscillator.stop();
       }
       oscillator.volume.value = player.vol;
+
+      if (player.transportSampleIsPlaying) {
+        zap.start();
+      }
+      else {
+        zap.stop();
+      }
+
+    })
+
+    playerSamplesRef.on("value", (snapshot) => {
+      const player = snapshot.val();
+      name = player.name;
+      if (player.cmDroneisPlaying) {
+        cmDrone.start();
+      }
+      else {
+        cmDrone.stop();
+      }
+
+      if (player.eDrone1isPlaying) {
+        CmDrone1.start();
+      }
+      else {
+        CmDrone1.stop();
+      }
+
+      if (player.cmSampleisPlaying) {
+        cmSample.start();
+      }
+      else {
+        cmSample.stop();
+      }
+
     })
 
     playerRef.onDisconnect().remove();
 
-  } else {
-  }
+  } 
+
 })
 
 firebase.auth().signInAnonymously().catch((error) => {
@@ -100,14 +149,32 @@ const playerListDiv = document.getElementById('playerList');
 const visualizerDiv = document.getElementById('visualizer-container');
 
 document.getElementById("hostStartBtn").addEventListener("click", () => {
+  const StartTransport = document.createElement('button');
+  const StopTransport = document.createElement('button');
+
+  StartTransport.innerHTML = "Start Transport";
+  StopTransport.innerHTML = "Stop Transport";
+  StartTransport.addEventListener('click', () => {
+    Tone.Transport.start();
+  })
+  StopTransport.addEventListener('click', () => {
+    Tone.Transport.stop();
+  })
+  
   document.getElementById("overlay").style.display = "none";
   document.getElementById("backimg").style.display = "none";
   document.getElementById("chord-buttons").style.display = "flex";
+  let globalControls = document.getElementById("globalControl")
+  globalControls.style.display = "flex";
+  globalControls.appendChild(StartTransport);
+  globalControls.appendChild(StopTransport);
+  document.getElementById("hostSamplePad").style.display = "flex";
   setupChords();
   visualizerDiv.style.display = "none";
   playerListDiv.style.display = "block";
   Tone.start();
   renderPlayerList();
+  globalControl();
 
   
 });
@@ -115,7 +182,7 @@ document.getElementById("hostStartBtn").addEventListener("click", () => {
 document.getElementById("startBtn").addEventListener("click", () => {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("backimg").style.display = "none";
-
+  document.getElementById("samplePad").style.display = "flex";
   Tone.start();
 
   playerRef.update({
@@ -298,6 +365,10 @@ const chords = [
     notes: [293.66, 369.99, 440.00]
   },
   {
+    name: "Eb Major",
+    notes: [311.13, 392.00, 466.16]
+    },
+  {
     name: "E Major",
     notes: [329.63, 415.30, 493.88]
   },
@@ -312,6 +383,14 @@ const chords = [
   {
     name: "G Minor",
     notes: [392.00, 466.16, 587.33]
+  },
+  {
+    name: "C Minor",
+    notes: [261.63, 311.13, 392.00]
+  },
+  {
+    name: "F Minor",
+    notes: [349.23, 369.99, 440.00]
   }
 ];
 
@@ -347,6 +426,115 @@ function setupChords() {
     });
   });
 }
+
+function globalControl(){
+  document.getElementById("playAll").addEventListener("click", () => {
+    for (const playerId in players) {
+      const playerRef = firebase.database().ref(`players/${playerId}`);
+      playerRef.child('isPlaying').set(true);
+    }
+
+  });
+
+  document.getElementById("stopAll").addEventListener("click", () => {
+    for (const playerId in players) {
+      const playerRef = firebase.database().ref(`players/${playerId}`);
+      playerRef.child('isPlaying').set(false);
+    }
+  });
+
+  document.getElementById("cmDrone").addEventListener('change', function() {
+    if (this.checked) {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmDroneisPlaying').set(true);
+      }
+    } else {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmDroneisPlaying').set(false);
+      }
+    }
+  });
+
+  document.getElementById("eDrone1").addEventListener('change', function() {
+    if (this.checked) {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('eDrone1isPlaying').set(true);
+      }
+    } else {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('eDrone1isPlaying').set(false);
+      }
+    }
+  });
+
+  document.getElementById("cmSample").addEventListener('change', function() {
+    if (this.checked) {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmSampleisPlaying').set(true);
+      }
+    } else {
+      for (const playerId in players) {
+        const playerRef = firebase.database().ref(`players/${playerId}/samples`);
+        playerRef.child('cmSampleisPlaying').set(false);
+      }
+    }
+  });
+
+}
+
+
+
+
+
+const sheep = new Tone.Player("/Samples/SheepBaa_S08AN.310.wav").toDestination();
+const elephant = new Tone.Player("Samples/elephantCry.wav").toDestination();
+const spk1 = new Tone.Player("Samples/SPLC-4185_FX_Loop_Radio_Noise_Handheld_Voice_Distorted.wav").toDestination();
+const plath = new Tone.Player("Samples/plath.wav").toDestination();
+
+const vol = new Tone.Volume(2).toDestination();
+plath.connect(vol);
+
+document.getElementById("elephant").addEventListener("click", () => {
+  elephant.start();
+});
+document.getElementById("sheep").addEventListener("click", () => {
+  sheep.start();
+});
+document.getElementById("time").addEventListener("click", () => {
+  spk1.start();
+});
+document.getElementById("plath").addEventListener("click", () => {
+  plath.start();
+});
+
+
+
+Tone.Transport.bpm.value = 80;
+
+let currentPlayerIndex = 0;
+
+Tone.Transport.scheduleRepeat((time) =>{
+  // get the current player
+  const currentPlayerKey = Object.keys(players)[currentPlayerIndex];
+  const currentPlayer = players[currentPlayerKey];
+  
+  // set the transportSampleIsPlaying value for the current player to true
+  firebase.database().ref('players/' + currentPlayerKey).update({ transportSampleIsPlaying: true });
+  
+  // schedule a stop for the current player on the next beat
+  Tone.Transport.scheduleOnce((innerTime) => {
+    firebase.database().ref('players/' + currentPlayerKey).update({ transportSampleIsPlaying: false });
+  }, "+8n");
+  
+  // increment the currentPlayerIndex and wrap around if necessary
+  currentPlayerIndex = (currentPlayerIndex + 1) % Object.keys(players).length;
+  
+}, "4n");
 
 
   
