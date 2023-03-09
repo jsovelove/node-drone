@@ -229,7 +229,7 @@ document.getElementById("hostStartBtn").addEventListener("click", () => {
 
 document.getElementById("startBtn").addEventListener("click", () => {
   document.getElementById("overlay").style.display = "none";
-  document.getElementById("backimg").style.display = "none";
+//   document.getElementById("backimg").style.display = "none";
   document.getElementById("samplePad").style.display = "flex";
   Tone.start();
 
