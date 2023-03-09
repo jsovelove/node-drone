@@ -41,7 +41,7 @@ const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)
 const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 const randomName = `${randomAdjective} ${randomAnimal}`;
 
-const zap = new Tone.Player("Samples/RU_FD_one_shot_guitar_stones_Cmin.wav").toDestination();
+const zap = new Tone.Player("Samples/Modular_one_shot_chirp.wav").toDestination();
 const cmDrone = new Tone.Player("Samples/RU_GA_guitar_soundscape_drone_pluto_cm.wav").toDestination();
 const CmDrone1 = new Tone.Player("Samples/RU_GA_80_guitar_cherry_plum_triplets_C.wav").toDestination();
 const cmSample = new Tone.Player("Samples/C_chunky.wav").toDestination();
