@@ -210,7 +210,7 @@ document.getElementById("hostStartBtn").addEventListener("click", () => {
   })
   
   document.getElementById("overlay").style.display = "none";
-  document.getElementById("backimg").style.display = "none";
+//   document.getElementById("backimg").style.display = "none";
   document.getElementById("chord-buttons").style.display = "flex";
   let globalControls = document.getElementById("globalControl")
   globalControls.style.display = "flex";
