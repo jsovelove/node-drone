@@ -42,11 +42,6 @@ const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)
 const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 const randomName = `${randomAdjective} ${randomAnimal}`;
 
-//random sound generator
-const pitches = [1, 6, 12];
-const randomIndex = Math.floor(Math.random() * pitches.length);
-const randomValue = pitches[randomIndex];
-
 //samples to be played at random
 const playerUrls = [
   'Samples/c_hit_soft.wav',
@@ -193,6 +188,8 @@ firebase.auth().signInAnonymously().catch((error) => {
 //players array stores each player's data and is updated when a new player joins or leaves
 //used to update the player info on the host's screen
 let players = [];
+
+
 const playerListDiv = document.getElementById('playerList');
 const visualizerDiv = document.getElementById('visualizer-container');
 
