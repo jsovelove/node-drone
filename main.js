@@ -4,7 +4,8 @@ import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
 import 'firebase/compat/database';
 import { getAuth, deleteUser } from "firebase/auth";
-
+import * as THREE from 'three';
+import * as dat from 'dat.gui';
 import * as Tone from 'tone'
 
 
@@ -348,36 +349,70 @@ allPlayersRef.on("value", (snapshot) => {
   renderPlayerList();
 });
 
+
+
+
 function setupAudioVisualizer() {
   const analyser = new Tone.Analyser("waveform", 256);
-  const canvas = document.getElementById('canvas');
-  const canvasCtx = canvas.getContext("2d");
+  
   oscillator.connect(analyser);
 
-  function draw() {
-    requestAnimationFrame(draw);
-    canvasCtx.strokeStyle = "#FFFFFF";
+  // Select the container
+  const container = document.getElementById('visualizer-container');
+
+  // Set up the basic Three.js scene
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(container.offsetWidth, container.offsetHeight);
+  container.appendChild(renderer.domElement); // Append to the container
+  renderer.domElement.style.display = 'block';
+
+  var geometry, material, mesh;
+
+  // Add a cube to the scene
+  geometry = new THREE.IcosahedronGeometry(100, 1);
+  material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, wireframeLinewidth: 1 });
+
+  mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+  camera.position.x = 0;
+  camera.position.y = 20;
+  camera.position.z = 600;
+
+
+
+
+  function animate() {
+    requestAnimationFrame(animate);
+  
+    // Get audio data
     const buffer = analyser.getValue();
-    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-    canvasCtx.beginPath();
-    
-    const sliceWidth = canvas.width / buffer.length;
-    let x = 0;
-
+  
+    // Use audio data to affect the cube (example: scale based on average volume)
+    let sum = 0;
     for (const val of buffer) {
-      const y = (val + 1) / 2 * canvas.height;
-      if (x === 0) {
-        canvasCtx.moveTo(x, y);
-      } else {
-        canvasCtx.lineTo(x, y);
-      }
-      x += sliceWidth;
+      sum += Math.abs(val);
     }
+    let average = sum / buffer.length;
+    mesh.scale.set(1 + average, 1 + average, 1 + average);
+    
+    mesh.rotation.x += 0.03;
+		mesh.rotation.y += 0.02;
+    // Render the scene
+    renderer.render(scene, camera);
+  }
+  
+  animate();
 
-    canvasCtx.stroke();
+  window.addEventListener('resize', onWindowResize, false);
+
+  function onWindowResize() {
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
   }
 
-  draw();
 }
 
 
