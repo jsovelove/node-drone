@@ -3,20 +3,34 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
 import 'firebase/compat/database';
-import { getAuth, deleteUser } from "firebase/auth";
-
+import { getAuth, deleteUser, } from "firebase/auth";
 import * as Tone from 'tone'
+import { auth, signInAnonymously, db } from './firebaseManager';
+import Player from './playerManager';
+import { setupHostControls } from './UIManager'
+import { setupPlayerSamplePad } from './UIManager';
+import { createOscillator } from './audioManager';
 
 
-//firebase config
-firebase.initializeApp({
-  apiKey: "AIzaSyDYf0BlW0pNhi1e8RYjxMhAov6ngDGJakE",
-  authDomain: "node-drone-c94f1.firebaseapp.com",
-  projectId: "node-drone-c94f1",
-  storageBucket: "node-drone-c94f1.appspot.com",
-  messagingSenderId: "741839883014",
-  appId: "1:741839883014:web:09aec33b0f7b002f822c87"
-})
+let players = [];
+
+// Authenticate and set up the current player
+signInAnonymously();
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const playerId = user.uid;
+    const playerName = `Player-${Math.floor(Math.random() * 1000)}`;
+    const player = await Player.createPlayer(playerId, playerName);
+
+    // Sync player with Firebase
+    player.syncWithFirebase();
+
+    players.push(player);
+    console.log(`Player created: ${playerName}`);
+  }
+});
+
+const allPlayersRef = db.ref('players');
 
 
 let octave = 1;
@@ -65,129 +79,14 @@ function playRandomPlayer() {
 }
 
 //Host sample bank
-const cmDrone = new Tone.Player("Samples/RU_GA_guitar_soundscape_drone_pluto_cm.wav").toDestination();
-const CmDrone1 = new Tone.Player("Samples/RU_GA_80_guitar_cherry_plum_triplets_C.wav").toDestination();
-const cmSample = new Tone.Player("Samples/C_chunky.wav").toDestination();
-const gtrTexture = new Tone.Player("Samples/guitar_txtr_cm.wav").toDestination();
-const cmAmbient = new Tone.Player("Samples/moog_mist_cm.wav").toDestination();
-cmDrone.loop = true;
-CmDrone1.loop = true;
-cmSample.loop = true;
-gtrTexture.loop = true;
-cmAmbient.loop = true;
+
 
 //realtime database setup
-const db = firebase.database();
-const oscillator = new Tone.FatOscillator().toDestination();
 
-let name;
-let playerId;
-let playerRef;
-let playerSamplesRef;
 
-firebase.auth().onAuthStateChanged((user) => {
-
-  console.log(user)
-  if (user) {
-
-    playerId = user.uid;
-
-    playerRef = firebase.database().ref(`players/${playerId}`);
-    playerSamplesRef = firebase.database().ref(`players/${playerId}`).child('samples');
-    playerRef.set({
-      id: playerId,
-      name: randomName,
-      type: 'sawtooth',
-      freq: 261.625,
-      vol: -12,
-      isPlaying: false,
-      hasClickedPlayerButton: false,
-      samples: {
-        cmDroneisPlaying: false,
-        eDrone1isPlaying: false,
-        cmSampleisPlaying: false,
-        gtrTextureisPlaying: false,
-        cmAmbientisPlaying: false
-      }
-
-    });
-
-    playerRef.on("value", (snapshot) => {
-      const player = snapshot.val();
-      name = player.name;
-      console.log('player updated:', player);
-      if (player.isPlaying) {
-        oscillator.type = player.type;
-        // oscillator.frequency.value = player.freq;
-        oscillator.frequency.rampTo(player.freq, 1);
-        oscillator.start();
-      } else {
-        oscillator.stop();
-      }
-      oscillator.volume.value = player.vol;
-      
-
-      if (player.transportSampleIsPlaying) {
-        playRandomPlayer();
-      }
-      
-
-    })
-
-    playerSamplesRef.on("value", (snapshot) => {
-      const player = snapshot.val();
-      name = player.name;
-      if (player.cmDroneisPlaying) {
-        cmDrone.start();
-      }
-      else {
-        cmDrone.stop();
-      }
-
-      if (player.eDrone1isPlaying) {
-        CmDrone1.start();
-      }
-      else {
-        CmDrone1.stop();
-      }
-
-      if (player.cmSampleisPlaying) {
-        cmSample.start();
-      }
-      else {
-        cmSample.stop();
-      }
-      if (player.gtrTextureisPlaying) {
-        gtrTexture.start();
-      }
-      else {
-        gtrTexture.stop();
-      }
-      if (player.cmAmbientisPlaying) {
-        cmAmbient.start();
-      }
-      else {
-        cmAmbient.stop();
-      }
-
-    })
-
-    playerRef.onDisconnect().remove();
-
-  } 
-
-})
-
-firebase.auth().signInAnonymously().catch((error) => {
-  var errorCode = error.code;
-  var errorMessage = error.message;
-  // ...
-  console.log(errorCode, errorMessage);
-});
 
 //players array stores each player's data and is updated when a new player joins or leaves
 //used to update the player info on the host's screen
-let players = [];
 
 
 const playerListDiv = document.getElementById('playerList');
@@ -201,62 +100,30 @@ document.getElementById("hostStartBtn").addEventListener("click", () => {
   StopTransport.innerHTML = "Stop Transport";
   StartTransport.addEventListener('click', () => {
     Tone.Transport.start();
-  })
+  });
   StopTransport.addEventListener('click', () => {
     Tone.Transport.stop();
-  })
-  
+  });
+
   document.getElementById("overlay").style.display = "none";
-//   document.getElementById("backimg").style.display = "none";
   document.getElementById("chord-buttons").style.display = "flex";
-  let globalControls = document.getElementById("globalControl")
+  const globalControls = document.getElementById("globalControl");
   globalControls.style.display = "flex";
   globalControls.appendChild(StartTransport);
   globalControls.appendChild(StopTransport);
+
   document.getElementById("hostSamplePad").style.display = "flex";
   setupChords();
-  visualizerDiv.style.display = "none";
-  playerListDiv.style.display = "block";
-  Tone.start();
   renderPlayerList();
   globalControl();
-
-  
+  Tone.start();
 });
 
+
+const oscillator = createOscillator('sawtooth', 261.625, -12);
+
 document.getElementById("startBtn").addEventListener("click", () => {
-  document.getElementById("overlay").style.display = "none";
-//   document.getElementById("backimg").style.display = "none";
-  document.getElementById("samplePad").style.display = "flex";
-  Tone.start();
-
-  playerRef.update({
-    hasClickedPlayerButton: true
-  });
-  
-  const playerDisp = document.getElementById("PlayerDispContainer");
-  playerDisp.style.display = "flex";
-
-  const playerDisplay = document.createElement('div');
-  playerDisplay.setAttribute('id', 'playerDisplay')
-  playerDisplay.textContent = name;
-  document.getElementById('name').appendChild(playerDisplay);
-
-  const volumeSlider = document.createElement("input");
-    volumeSlider.type = "range";
-    volumeSlider.min = "-70";
-    volumeSlider.max = "0";
-    volumeSlider.value = -12;
-    volumeSlider.addEventListener("change", () => {
-      oscillator.volume.value = volumeSlider.value;
-
-
-    });
-    playerDisp.appendChild(volumeSlider);
-
-
-  setupAudioVisualizer();
-
+  setupPlayerSamplePad(name, allPlayersRef, oscillator);
 });
 
 //creates a interface for each player
@@ -341,7 +208,6 @@ function renderPlayerList() {
   }
 }
 
-const allPlayersRef = firebase.database().ref(`players`);
 allPlayersRef.on("value", (snapshot) => {
   players = snapshot.val();
   console.log('player list updated:', players);
