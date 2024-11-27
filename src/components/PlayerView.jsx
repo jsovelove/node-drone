@@ -1,29 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Tone from 'tone';
+import { FirebaseContext } from '../context/FirebaseContext';
+import { ref, onValue } from 'firebase/database';
 
 const PlayerView = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { database } = React.useContext(FirebaseContext);
+  const [sampleData, setSampleData] = useState(null);
+  const [playerId, setPlayerId] = useState('player-id'); // Replace with actual player ID logic
+  const playerRef = ref(database, `players/${playerId}/sample`);
 
-  const playSound = () => {
-    const synth = new Tone.Synth().toDestination();
-    synth.triggerAttackRelease("C4", "8n");
-  };
+  useEffect(() => {
+    const unsubscribe = onValue(playerRef, (snapshot) => {
+      setSampleData(snapshot.val());
+    });
 
-  return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>Player View</h2>
-      <button
-        onClick={() => {
-          Tone.start();
-          playSound();
-          setIsPlaying(!isPlaying);
-        }}
-        style={{ padding: '10px 20px' }}
-      >
-        {isPlaying ? "Stop Sound" : "Play Sound"}
-      </button>
-    </div>
-  );
+    return () => unsubscribe();
+  }, [playerRef]);
+
+  useEffect(() => {
+    if (sampleData?.sample) {
+      const player = new Tone.Player(sampleData.sample).toDestination();
+      player.loop = sampleData.isLooping;
+      player.start();
+      return () => player.stop();
+    }
+  }, [sampleData]);
+
+  return <div>Player View: Listening for sample updates...</div>;
 };
 
 export default PlayerView;
