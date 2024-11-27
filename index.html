@@ -1,102 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="waves_FILL0_wght400_GRAD0_opsz48.svg" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Node Drone</title>
-    <link rel="stylesheet" href="/style.css" />
+    <title>Vite + React</title>
   </head>
   <body>
-    
-    <div id="overlay">
-      <h1 id="title">Drone Nodes</h1>
-      <button id="startBtn">Start as player</button>
-      <button id="hostStartBtn">Start as host</button>
-    </div>
-
-<!--     <div id="background">
-      <img src="back.png" alt="A painting of a large group of people all holding their phones in the air" id="backimg">
-    </div> -->
-    
-
-    <div id="app"></div>
-    <script type="module" src="/main.js"></script>
-    
-    <div id="globalControl">
-      <button id="playAll">Play All</button>
-      <button id="stopAll">Stop All</button>
-    </div>
-    <div id="chord-buttons">
-      <button id="btn-c-major">C Major</button>
-      <button id="btn-c-minor">C Minor</button>
-      <button id="btn-g-major">G Major</button>
-      <button id="btn-g-minor">G Minor</button>
-      <button id="btn-a-minor">A Minor</button>
-      <button id="btn-d-major">D Major</button>
-      <button id="btn-eb-major">Eb Major</button>
-      <button id="btn-e-major">E Major</button>
-      <button id="btn-f-major">F Major</button>
-      <button id="btn-f-minor">F Minor</button>
-      <button id="btn-bb-major">Bb Major</button>
-      
-    </div>
-
-    <div id="hostSamplePad">
-      <label class="switch">
-        <input type="checkbox" id="cmDrone">
-        <span class="slider">cm Drone</span>
-      </label>
-      <label class="switch">
-        <input type="checkbox" id="eDrone1">
-        <span class="slider">cm Drone2</span>
-      </label>
-      <label class="switch">
-        <input type="checkbox" id="cmSample">
-        <span class="slider">cm Sample</span>
-      </label>
-      <label class="switch">
-        <input type="checkbox" id="gtrTexture">
-        <span class="slider">guitar Texture</span>
-      </label>
-      <label class="switch">
-        <input type="checkbox" id="cmAmbient">
-        <span class="slider">cm Ambient</span>
-      </label>
-      
-    </div>
-
-    <div id="playerList">
-      
-    </div>
-
-    <div id="PlayerDispContainer"> 
-      <div id="name"></div>
-
-      <div id="visualizer-container">
-        <canvas id="canvas"></canvas> 
-      </div>
-
-      <div class="controls">
-        <button id = "start" >
-          Start
-        </button>
-        <button id="stop">
-          Stop
-        </button>
-    </div>
-    <div id="samplePad">
-      <button id="elephant">elephant</button>
-      <button id="sheep">sheep</button>
-      <button id="time">get there</button>
-      <button id="plath">Plath</button>
-      <button id="gtr">guitar</button>
-      <button id="gtr2">guitar 2</button>
-      <button id="alien">alien</button>
-      <button id="blaster">blaster</button>
-      <button id="cough">cough</button>
-    </div>
-    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-

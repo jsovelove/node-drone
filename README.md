@@ -1,11 +1,8 @@
-# node-drone
+# React + Vite
 
-This project utilizes Firebase and Tone.js to create an interactive and group driven musical experience.
-A user can choose to be a host or player. As a host you are given an interface which displays all the currently connected players
-and the ability to change the player's volume, pitch and oscillator.
-In player view, you have a waveform visualzier and the ability to control your own values
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+Currently, two official plugins are available:
 
-
-
-
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
