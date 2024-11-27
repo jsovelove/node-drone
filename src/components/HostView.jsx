@@ -19,6 +19,8 @@ const nodeTypes = {
   sampleNode: SampleNode,
 };
 
+
+
 const HostView = () => {
   const { database } = useContext(FirebaseContext);
   const [nodes, setNodes] = useState([]);
@@ -46,14 +48,19 @@ const HostView = () => {
   const addOscillatorNode = () => {
     const newOscillatorNode = {
       id: `osc-${Date.now()}`,
-      data: { label: 'Oscillator', frequency: 440, waveform: 'sine' },
+      data: {
+        label: 'Oscillator',
+        frequency: 440,
+        waveform: 'sine',
+        isPlaying: false,
+      },
       position: { x: 200, y: 200 },
       type: 'oscillatorNode',
       draggable: true,
     };
     setNodes((nds) => [...nds, newOscillatorNode]);
   };
-
+  
   const addSampleNode = () => {
     const newSampleNode = {
       id: `sample-${Date.now()}`,
@@ -64,6 +71,19 @@ const HostView = () => {
     };
     setNodes((nds) => [...nds, newSampleNode]);
   };
+  
+  const enhancedNodes = nodes.map((node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      edges,
+      nodes,
+      updateEdges: setEdges,
+      database,
+      updateNodes: setNodes,
+    },
+  }));
+  
 
   
 
@@ -133,7 +153,7 @@ const HostView = () => {
             Add Sample Node
         </button>
       <ReactFlow
-        nodes={nodes}
+        nodes={enhancedNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

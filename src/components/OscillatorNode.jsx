@@ -1,9 +1,46 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
+import { ref, update } from 'firebase/database';
 
-const OscillatorNode = ({ data }) => {
-  const updateParameter = (param, value) => {
-    data[param] = value; // Update parameter locally
+
+const OscillatorNode = ({ data, id }) => {
+  // Function to get connected player IDs
+  const getConnectedPlayerIds = () => {
+    return data.edges
+      .filter((edge) => edge.source === id)
+      .map((edge) => edge.target);
+  };
+
+  const handlePlayToggle = () => {
+    const connectedPlayerIds = getConnectedPlayerIds();
+
+    if (connectedPlayerIds.length === 0) {
+      console.warn('No players connected to this oscillator.');
+      return;
+    }
+
+    const isPlaying = !data.isPlaying;
+
+    // Update the play state in Firebase for all connected players
+    connectedPlayerIds.forEach((playerId) => {
+      const playerRef = ref(data.database, `players/${playerId}/oscillator`);
+      update(playerRef, { isPlaying });
+    });
+
+    // Update the play state locally
+    data.updateNodes((nds) =>
+      nds.map((node) =>
+        node.id === id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                isPlaying,
+              },
+            }
+          : node
+      )
+    );
   };
 
   return (
@@ -19,28 +56,14 @@ const OscillatorNode = ({ data }) => {
     >
       <h4>Oscillator</h4>
       <div>
-        <label>Freq:</label>
-        <input
-          type="number"
-          defaultValue={data.frequency}
-          onChange={(e) => updateParameter('frequency', parseFloat(e.target.value))}
-          style={{ width: '60px' }}
-        />
+        <p>Freq: {data.frequency} Hz</p>
+        <p>Waveform: {data.waveform}</p>
       </div>
-      <div>
-        <label>Wave:</label>
-        <select
-          defaultValue={data.waveform}
-          onChange={(e) => updateParameter('waveform', e.target.value)}
-        >
-          <option value="sine">Sine</option>
-          <option value="square">Square</option>
-          <option value="triangle">Triangle</option>
-          <option value="sawtooth">Sawtooth</option>
-        </select>
-      </div>
+      <button onClick={handlePlayToggle}>
+        {data.isPlaying ? 'Stop' : 'Play'}
+      </button>
       <Handle
-        type="source" // This is an output handle
+        type="source"
         position={Position.Bottom}
         style={{ background: '#ff6600' }}
       />
@@ -49,3 +72,4 @@ const OscillatorNode = ({ data }) => {
 };
 
 export default OscillatorNode;
+
