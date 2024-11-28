@@ -9,23 +9,26 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import OscillatorNode from './OscillatorNode';
 import PlayerNode from './PlayerNode';
+import SampleNode from './SampleNode';
+import Toolbar from './Toolbar';
 import { FirebaseContext } from '../context/FirebaseContext';
 import { ref, onValue, update } from 'firebase/database';
-import SampleNode from './SampleNode';
+import SampleTriggerNode from './SampleTriggerNode';
+
 
 const nodeTypes = {
   oscillatorNode: OscillatorNode,
   playerNode: PlayerNode,
   sampleNode: SampleNode,
+  sampleTriggerNode: SampleTriggerNode,
 };
-
-
 
 const HostView = () => {
   const { database } = useContext(FirebaseContext);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
+  // Listen for player data from Firebase
   useEffect(() => {
     const playersRef = ref(database, 'players');
     const unsubscribe = onValue(playersRef, (snapshot) => {
@@ -39,12 +42,16 @@ const HostView = () => {
         draggable: true,
       }));
 
-      setNodes((nds) => [...nds.filter((n) => n.type === 'oscillatorNode'), ...playerNodes]);
+      setNodes((nds) => [
+        ...nds.filter((node) => node.type !== 'playerNode'),
+        ...playerNodes,
+      ]);
     });
 
     return () => unsubscribe();
   }, [database]);
 
+  // Add Oscillator Node
   const addOscillatorNode = () => {
     const newOscillatorNode = {
       id: `osc-${Date.now()}`,
@@ -60,7 +67,8 @@ const HostView = () => {
     };
     setNodes((nds) => [...nds, newOscillatorNode]);
   };
-  
+
+  // Add Sample Node
   const addSampleNode = () => {
     const newSampleNode = {
       id: `sample-${Date.now()}`,
@@ -71,7 +79,24 @@ const HostView = () => {
     };
     setNodes((nds) => [...nds, newSampleNode]);
   };
+
+  const addSampleTriggerNode = () => {
+    const newSampleTriggerNode = {
+      id: `trigger-${Date.now()}`,
+      data: {
+        label: 'Sample Trigger',
+        database, // Pass Firebase database reference
+      },
+      position: { x: 300, y: 200 },
+      type: 'sampleTriggerNode',
+      draggable: true,
+    };
+    setNodes((nds) => [...nds, newSampleTriggerNode]);
+  };
   
+  
+
+  // Enhanced nodes for passing additional data
   const enhancedNodes = nodes.map((node) => ({
     ...node,
     data: {
@@ -83,10 +108,8 @@ const HostView = () => {
       updateNodes: setNodes,
     },
   }));
-  
 
-  
-
+  // Node and edge event handlers
   const onNodesChange = (changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
   };
@@ -98,23 +121,18 @@ const HostView = () => {
   const onConnect = (connection) => {
     const sourceNode = nodes.find((n) => n.id === connection.source);
     const targetNode = nodes.find((n) => n.id === connection.target);
-  
+
     if (sourceNode?.type === 'oscillatorNode' && targetNode?.type === 'playerNode') {
-      // Add the edge
       setEdges((eds) => addEdge(connection, eds));
-  
-      // Get all edges connected to this oscillator
+
       const connectedEdges = edges.filter((edge) => edge.source === sourceNode.id);
-  
-      // Collect all player nodes connected to this oscillator
+
       const connectedPlayerNodes = connectedEdges
         .map((edge) => nodes.find((node) => node.id === edge.target))
         .filter((node) => node?.type === 'playerNode');
-  
-      // Include the newly connected player node
+
       connectedPlayerNodes.push(targetNode);
-  
-      // Update all connected player nodes with the oscillator's data
+
       connectedPlayerNodes.forEach((playerNode) => {
         const playerRef = ref(database, `players/${playerNode.id}/oscillator`);
         update(playerRef, {
@@ -141,29 +159,27 @@ const HostView = () => {
       });
     }
   };
-  
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
-      <h2>Host View</h2>
-      <button onClick={addOscillatorNode} style={{ marginBottom: '10px' }}>
-        Add Oscillator Node
-      </button>
-        <button onClick={addSampleNode} style={{ marginBottom: '10px' }}>
-            Add Sample Node
-        </button>
-      <ReactFlow
-        nodes={enhancedNodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+    <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
+      {/* Toolbar */}
+      <Toolbar onAddOscillator={addOscillatorNode} onAddSample={addSampleNode}   onAddSampleTrigger={addSampleTriggerNode}/>
+
+      {/* ReactFlow Canvas */}
+      <div style={{ flexGrow: 1 }}>
+        <ReactFlow
+          nodes={enhancedNodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+        >
+          <Background />
+          <Controls />
+        </ReactFlow>
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { ref, set, onDisconnect } from 'firebase/database';
-import { auth, database } from '../firebase'; // Ensure auth and database are exported from your Firebase config
+import { auth, database } from '../context/FirebaseContext.jsx'; // Ensure auth and database are exported from your Firebase config
 
 export const AuthContext = createContext();
 
